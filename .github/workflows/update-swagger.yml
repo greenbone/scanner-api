@@ -1,0 +1,61 @@
+name: Update Swagger UI
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  updateSwagger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get Latest Swagger UI Release
+        id: swagger-ui
+        run: |
+          release_tag=$(curl -sL https://api.github.com/repos/swagger-api/swagger-ui/releases/latest | jq -r ".tag_name")
+          echo "release_tag=$release_tag" >> $GITHUB_OUTPUT
+          current_tag=$(<swagger-ui.version)
+          echo "current_tag=$current_tag" >> $GITHUB_OUTPUT
+      - name: Update Swagger UI
+        if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
+        env:
+          RELEASE_TAG: ${{ steps.swagger-ui.outputs.release_tag }}
+          SWAGGER_YAML: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml"
+        run: |
+          # Delete the dist directory and index.html
+          rm -fr dist index.html
+          # Download the release
+          curl -sL -o $RELEASE_TAG https://api.github.com/repos/swagger-api/swagger-ui/tarball/$RELEASE_TAG
+          # Extract the dist directory
+          tar -xzf $RELEASE_TAG --strip-components=1 $(tar -tzf $RELEASE_TAG | head -1 | cut -f1 -d"/")/dist
+          rm $RELEASE_TAG
+          # Move index.html to the root
+          mv dist/index.html .
+          # Fix references in dist/swagger-initializer and index.html
+          sed -i "s|https://petstore.swagger.io/v2/swagger.json|$SWAGGER_YAML|g" dist/swagger-initializer.js
+          sed -i "s|href=\"./|href=\"dist/|g" index.html
+          sed -i "s|src=\"./|src=\"dist/|g" index.html
+          sed -i "s|href=\"index|href=\"dist/index|g" index.html
+          # Update current release
+          echo ${{ steps.swagger-ui.outputs.release_tag }} > swagger-ui.version
+      - name: Set git name, mail and origin
+        run: |
+          git config --global user.name "${{ secrets.GREENBONE_BOT }}"
+          git config --global user.email "${{ secrets.GREENBONE_BOT_MAIL }}"
+          git remote set-url origin https://${{ secrets.GREENBONE_BOT_TOKEN }}@github.com/${{ github.repository }}
+      - name: Create Branch
+        run: |
+          git checkout -b swagger-ui-update
+      - name: Create Pull Request
+        run: |
+          git add .
+          git commit -m "Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}"
+          git push origin swagger-ui-update
+          gh pr create -B master -H swagger-ui-update -t 'Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}' -b 'Updates [swagger-ui][1] to ${{ steps.swagger-ui.outputs.release_tag }}
+
+          Auto-generated Pull Request
+
+          [1]: https://github.com/swagger-api/swagger-ui'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GREENBONE_BOT_TOKEN }}
