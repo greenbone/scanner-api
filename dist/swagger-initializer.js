@@ -3,7 +3,11 @@ window.onload = function() {
 
   // the following lines will be replaced by docker/configurator, when it runs in a docker-container
   window.ui = SwaggerUIBundle({
-    url: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml",
+    urls: [
+      { url: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml", name: "Scanner API" },
+      { url: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/reverse-sensor-openapi.yml", name: "Reverse Scanner API" }
+    ],
+    "urls.primaryName": "Scanner API",
     dom_id: '#swagger-ui',
     deepLinking: true,
     presets: [
