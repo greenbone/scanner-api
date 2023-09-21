@@ -24,7 +24,13 @@ jobs:
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
           RELEASE_TAG: ${{ steps.swagger-ui.outputs.release_tag }}
-          SWAGGER_YAML: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml"
+          SWAGGER_YAML: |
+            urls: [
+              { url: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml", name: "Scanner API" },
+              { url: "https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/reverse-sensor-openapi.yml", name: "Reverse Scanner API" }
+            ],
+            "urls.primaryName": "Scanner API",
+          SWAGGER_OLD_YML: 'url: "https://petstore.swagger.io/v2/swagger.json",'
           GITHUB_TOKEN: ${{ secrets.GREENBONE_BOT_TOKEN }}
         run: |
           # Delete the dist directory and index.html
@@ -37,7 +43,7 @@ jobs:
           # Move index.html to the root
           mv dist/index.html .
           # Fix references in dist/swagger-initializer and index.html
-          sed -i "s|https://petstore.swagger.io/v2/swagger.json|$SWAGGER_YAML|g" dist/swagger-initializer.js
+          sed -i "s|$SWAGGER_OLD_YML|$SWAGGER_YAML|g" dist/swagger-initializer.js
           sed -i "s|href=\"./|href=\"dist/|g" index.html
           sed -i "s|src=\"./|src=\"dist/|g" index.html
           sed -i "s|href=\"index|href=\"dist/index|g" index.html
