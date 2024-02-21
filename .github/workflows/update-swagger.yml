@@ -12,7 +12,9 @@ jobs:
   updateSwagger:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GREENBONE_BOT_TOKEN }}
       - name: Get Latest Swagger UI Release
         id: swagger-ui
         run: |
@@ -23,10 +25,10 @@ jobs:
       - name: Update Swagger UI
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
+          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.swagger-ui.outputs.release_tag }}
           SWAGGER_YAML: "urls: [{ url: \"https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml\", name: \"Scanner API\" },{ url: \"https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/reverse-sensor-openapi.yml\", name: \"Reverse Scanner API\" }],\"urls.primaryName\": \"Scanner API\","
           SWAGGER_OLD_YML: "url: \"https://petstore.swagger.io/v2/swagger.json\","
-          GITHUB_TOKEN: ${{ secrets.GREENBONE_BOT_TOKEN }}
         run: |
           # Delete the dist directory and index.html
           rm -fr dist index.html
@@ -47,13 +49,15 @@ jobs:
           # Set git name, mail and origin
           git config --global user.name "${{ secrets.GREENBONE_BOT }}"
           git config --global user.email "${{ secrets.GREENBONE_BOT_MAIL }}"
-          git remote set-url origin https://${{ secrets.GREENBONE_BOT_TOKEN }}@github.com/${{ github.repository }}
+          # delete previous branch if there is an unmerged PR open
+          git push origin :swagger-ui-update || true
           # Create Branch
           git checkout -b swagger-ui-update
           # Create Pull Request
           git add .
           git commit -m "Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}"
           git push origin swagger-ui-update
+
           gh pr create -B master -H swagger-ui-update -t 'Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}' -b 'Updates [swagger-ui][1] to ${{ steps.swagger-ui.outputs.release_tag }}
 
           Auto-generated Pull Request
