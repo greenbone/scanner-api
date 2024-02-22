@@ -22,6 +22,7 @@ jobs:
           echo "release_tag=$release_tag" >> $GITHUB_OUTPUT
           current_tag=$(<swagger-ui.version)
           echo "current_tag=$current_tag" >> $GITHUB_OUTPUT
+          echo ${{ github.event.repository.default_branch }}
       - name: Set git name, mail and origin
         uses: greenbone/actions/set-github-user@v3
         with:
@@ -67,7 +68,7 @@ jobs:
           git commit -m "Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}"
           git push origin swagger-ui-update
 
-          gh pr create -B master -H swagger-ui-update -t 'Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}' -b 'Updates [swagger-ui][1] to ${{ steps.swagger-ui.outputs.release_tag }}
+          gh pr create -B ${{ github.event.repository.default_branch }} -H swagger-ui-update -t 'Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}' -b 'Updates [swagger-ui][1] to ${{ steps.swagger-ui.outputs.release_tag }}
 
           Auto-generated Pull Request
 
