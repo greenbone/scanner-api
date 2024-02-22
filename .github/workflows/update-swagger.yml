@@ -41,6 +41,7 @@ jobs:
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GREENBONE_BOT_TOKEN }}
           RELEASE_TAG: ${{ steps.swagger-ui.outputs.release_tag }}
           SWAGGER_YAML: "urls: [{ url: \"https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/openapi.yml\", name: \"Scanner API\" },{ url: \"https://raw.githubusercontent.com/greenbone/openvas-scanner/main/rust/doc/reverse-sensor-openapi.yml\", name: \"Reverse Scanner API\" }],\"urls.primaryName\": \"Scanner API\","
           SWAGGER_OLD_YML: "url: \"https://petstore.swagger.io/v2/swagger.json\","
