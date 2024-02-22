@@ -12,7 +12,7 @@ jobs:
   updateSwagger:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.GREENBONE_BOT_TOKEN }}
       - name: Get Latest Swagger UI Release
@@ -22,6 +22,18 @@ jobs:
           echo "release_tag=$release_tag" >> $GITHUB_OUTPUT
           current_tag=$(<swagger-ui.version)
           echo "current_tag=$current_tag" >> $GITHUB_OUTPUT
+      - name: Set git name, mail and origin
+        uses: greenbone/actions/set-github-user@v3
+        with:
+          user: ${{ secrets.GREENBONE_BOT }}
+          mail: ${{ secrets.GREENBONE_BOT_MAIL }}
+          token: ${{ secrets.GREENBONE_BOT_TOKEN }}
+        # Enable admin bypass
+      - name: Allow admin users bypassing protection
+        uses: greenbone/actions/admin-bypass@v3
+        with:
+          allow: "true"
+          github-token: ${{ secrets.GREENBONE_BOT_TOKEN }}
       - name: Update Swagger UI
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
@@ -46,9 +58,6 @@ jobs:
           sed -i "s|href=\"index|href=\"dist/index|g" index.html
           # Update current release
           echo ${{ steps.swagger-ui.outputs.release_tag }} > swagger-ui.version
-          # Set git name, mail and origin
-          git config --global user.name "${{ secrets.GREENBONE_BOT }}"
-          git config --global user.email "${{ secrets.GREENBONE_BOT_MAIL }}"
           # delete previous branch if there is an unmerged PR open
           git push origin :swagger-ui-update || true
           # Create Branch
@@ -63,4 +72,9 @@ jobs:
           Auto-generated Pull Request
 
           [1]: https://github.com/swagger-api/swagger-ui'
-        shell: bash
+      - name: Disable bypassing protection for admin users
+        if: always()
+        uses: greenbone/actions/admin-bypass@v3
+        with:
+          allow: "false"
+          github-token: ${{ secrets.GREENBONE_BOT_TOKEN }}
