@@ -24,7 +24,7 @@ jobs:
           echo "current_tag=$current_tag" >> $GITHUB_OUTPUT
           echo ${{ github.ref }}
       - name: Setup pontos
-        uses: greenbone/actions/setup-pontos
+        uses: greenbone/actions/setup-pontos@v3
       - name: Set git name, mail and origin
         uses: greenbone/actions/set-github-user@v3
         with:
