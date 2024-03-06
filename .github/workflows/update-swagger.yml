@@ -71,10 +71,7 @@ jobs:
           git commit -m "Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}"
           git push origin swagger-ui-update
 
-          pontos-github pr create ${{ github.repository }} swagger-ui-update ${{ github.ref }}
-            'Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}'
-            --body "Updates [swagger-ui][1] to ${{ steps.swagger-ui.outputs.release_tag }}\n\n
-            Auto-generated Pull Request\n\n[1]: https://github.com/swagger-api/swagger-ui"
+          pontos-github pr create ${{ github.repository }} swagger-ui-update ${{ github.ref }} 'Update SwaggerUI to ${{ steps.swagger-ui.outputs.release_tag }}' --body "Updates [swagger-ui][1] to ${{ steps.swagger-ui.outputs.release_tag }}\n\nAuto-generated Pull Request\n\n[1]: https://github.com/swagger-api/swagger-ui"
       - name: Disable bypassing protection for admin users
         if: always()
         uses: greenbone/actions/admin-bypass@v3
