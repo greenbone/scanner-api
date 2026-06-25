@@ -14,12 +14,3 @@ body {
     margin: 0;
     background: #fafafa;
 }
-
-a,
-a:link,
-a:visited,
-a:hover,
-a:active {
-    color: inherit;
-    text-decoration: underline;
-}
